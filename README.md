@@ -1,4 +1,4 @@
-# portfolio
+# Portfolio on CodeBay
 Portfolio page will be a part of blog - codebay or codebayowl
 It will consists of:
 - about section;
