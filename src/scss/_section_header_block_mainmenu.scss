@@ -11,5 +11,14 @@
 	vertical-align: top;
 }
 .mainmenu_link {
+	display: inline-block;
+	vertical-align: top;
 	color: $color-bg;
+	padding: $basic / 2 $basic;
+	text-decoration: none;
+	transition: background-color .5s;
+	&:hover {
+		background-color: $color-light;
+		transition: background-color .5s;
+	}
 }

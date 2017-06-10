@@ -6,4 +6,12 @@
 #logo {}
 .menuwrap {}
 .options {}
-#lang {}
+#lang {
+	display: inline-block;
+	vertical-align: top;
+	color: $color-bgdark;
+	background: $color-dark;
+	font-size: $basic*.8;
+	margin: $basic/4;
+	padding: $basic/4 $basic/2;
+}

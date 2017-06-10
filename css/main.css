@@ -13,7 +13,7 @@ html {
 
 /* COLORS */
 /* SIZING and calc */
-.mainmenu_link {
+.mainmenu_link, #lang {
   font-size: 16px;
 }
 
@@ -35,6 +35,16 @@ html {
   margin: 0 auto;
 }
 
+#lang {
+  display: inline-block;
+  vertical-align: top;
+  color: #c2c3c4;
+  background: #002a35;
+  font-size: 12.8px;
+  margin: 4px;
+  padding: 4px 8px;
+}
+
 /* initial */
 #mainmenu {
   display: block;
@@ -51,7 +61,17 @@ html {
 }
 
 .mainmenu_link {
+  display: inline-block;
+  vertical-align: top;
   color: #e9eaec;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .5s;
+}
+
+.mainmenu_link:hover {
+  background-color: #127e9b;
+  transition: background-color .5s;
 }
 
 /* mark */
