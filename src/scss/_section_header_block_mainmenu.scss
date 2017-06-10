@@ -1,1 +1,15 @@
 /* initial */
+#mainmenu {
+	display: block;
+	list-style: none;
+}
+#mainmenu_button {
+	display: none;
+}
+.mainmenu_item {
+	display: inline-block;
+	vertical-align: top;
+}
+.mainmenu_link {
+	color: $color-bg;
+}
