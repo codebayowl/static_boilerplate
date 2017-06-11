@@ -1,14 +1,22 @@
 /* initial */
 #mainmenu {
-	display: block;
-	list-style: none;
+	//margin: 0 auto;
+	//outline: $test;
 }
 #mainmenu_button {
 	display: none;
 }
+#mainmenu_list {
+	display: block;
+	list-style: none;
+	text-align: left;
+	//outline: $test;
+}
 .mainmenu_item {
 	display: inline-block;
 	vertical-align: top;
+	border-bottom: $basic/4 solid $color-light;
+	border-top: $basic/4 solid $color-light;
 }
 .mainmenu_link {
 	display: inline-block;

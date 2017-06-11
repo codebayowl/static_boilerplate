@@ -13,7 +13,7 @@ html {
 
 /* COLORS */
 /* SIZING and calc */
-.mainmenu_link, #lang {
+.mainmenu_link, #lang, .map, .email, .home {
   font-size: 16px;
 }
 
@@ -35,29 +35,56 @@ html {
   margin: 0 auto;
 }
 
+#logo {
+  display: inline-block;
+  vertical-align: top;
+  height: 7vh;
+  width: 12vw;
+  background-image: url(../img/logo.png);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+  margin: 4px;
+}
+
+.menuwrap {
+  display: inline-block;
+  vertical-align: top;
+  text-align: right;
+  width: calc(920px - 13vw);
+}
+
+.map, .email, .home {
+  display: inline-block;
+  vertical-align: top;
+  color: #c2c3c4;
+  padding: 4px 8px;
+}
+
 #lang {
   display: inline-block;
   vertical-align: top;
   color: #c2c3c4;
   background: #002a35;
-  font-size: 12.8px;
-  margin: 4px;
   padding: 4px 8px;
 }
 
 /* initial */
-#mainmenu {
-  display: block;
-  list-style: none;
-}
-
 #mainmenu_button {
   display: none;
+}
+
+#mainmenu_list {
+  display: block;
+  list-style: none;
+  text-align: left;
 }
 
 .mainmenu_item {
   display: inline-block;
   vertical-align: top;
+  border-bottom: 4px solid #127e9b;
+  border-top: 4px solid #127e9b;
 }
 
 .mainmenu_link {
