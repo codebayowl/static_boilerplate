@@ -1,9 +1,29 @@
-# Portfolio on CodeBay
-Portfolio page will be a part of blog - codebay or codebayowl
-It will consists of:
-- about section;
-- design section (with raster & vector design graphics);
-- photo gallery (panorams);
-- front- and backend works;
-- contact form;
-- footer with social media links;
+## Состав
+### CSS
+Два файла:
+
+* библиотеки:
+		компиляция из отдельных CSS -> 
+		конкатинация -> 
+		сжатие -> 
+		выдача CSS;
+		
+* кастомные стили:
+		переменные SCSS + миксины SCSS + модули SCSS + стили SCSS + модификаторы SCSS ->
+		компиляция ->
+		конкатинация ->
+		выдача CSS.
+
+### PUG
+
+Один файл основной, с инклюдными блоками.
+
+### JS
+
+Два файла: 
+
+Библиотеки (конкатенация из отдельных, сжатие, выдача)
+
+Главные стили (без сжатия).
+
+В итоге - конкатинация сжатых библиотек плюс несжаты стили
