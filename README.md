@@ -10,4 +10,4 @@ The same principle that in SCSS - aggregator files with partial _*.pug files.
 There could be several aggregators using the same partial blocks.
 
 ### JS
-Nothing to say for now...
+Nothing to say for now
