@@ -1,138 +1,115 @@
-var gulp            = require('gulp'),							// Их величество Gulp собственной персоной
-    sass            = require('gulp-sass'),					// препроцессор Sass (включая синтаксис SCSS) для Gulp
-    browserSync     = require('browser-sync'),			// обновлялка браузера
-    concat          = require('gulp-concat'),				// конкатенация файлов
-    uglify          = require('gulp-uglify'),				// сжатие JS
-    cssnano         = require('gulp-cssnano'),			// сжатие CSS
-    rename          = require('gulp-rename'),				// переименование файлов (для суффиксов всяческих и тд)
-    del             = require('del'),								// удаление файлов и папок (для билда - предварительная очистка всего билд-каталога)
-    imagemin        = require('gulp-imagemin'),			// работа с изображениями
-    pngquant        = require('imagemin-pngquant'),	// работа с png
-    cache           = require('gulp-cache'),				// работа с кешированием
-    autoprefixer    = require('gulp-autoprefixer'),	// автопрефиксер
-		pug             = require('gulp-pug'),					// препроцессор pug
-		libs						=	require('./libs');						// подключаем файл с конфигурацией и путей библиотек.
+const {src, dest, parallel,series, watch} = require('gulp'); // connecting gulp functions
+const browserSync = require('browser-sync').create(); // connecting standalone node.js module to the project
+const concat = require('gulp-concat'); // connecting standalone node.js module to the project
+const uglify = require('gulp-uglify-es').default; // !!READ DOCUMENTATION FOR ".default"!! connecting standalone node.js module to the project
+const scss = require('gulp-sass')(require('sass')); // connecting standalone node.js module to the project
+const vendorize = require('gulp-autoprefixer'); // connecting standalone node.js module to the project
+const cleancss = require('gulp-clean-css'); // connecting standalone node.js module to the project
+const pug = require('gulp-pug'); // connecting standalone node.js module to the project
+const imagemin = require('gulp-imagemin'); // connecting standalone node.js module to the project
+const newer = require('gulp-newer'); // connecting standalone node.js module to the project
+const del = require('del'); // connecting standalone node.js module to the project
+const htmlmin = require('gulp-htmlmin'); // connecting standalone node.js module to the project
+const uglifycss = require('gulp-uglifycss'); // connecting standalone node.js module to the project
 
+function browsersync() {
+    browserSync.init({
+        server: {baseDir: 'preprod/'},
+        notify: false,
+        online: true // change to false if working offline (browsercync won't start otherwise)
+    })
+}
 
+function compilePug() {
+    return src([
+        'src/pug/*.pug',
+        '!src/pug/_*.pug'
+    ])
+    .pipe(pug())
+    //.pipe(concat('index.html'))
+    .pipe(dest('preprod/'))
+    .pipe(browserSync.stream()) // adding watching w/o hard reload of page
+}
 
-// КОМПИЛЯЦИЯ Sass/SCSS
-gulp.task('styles', function() {
-    return gulp.src([
-			'sources/styles/*.+(scss|sass)',				// берем все файлы с расширением .scss и .sass в папках с аналогичными расширению названиями, ...
-			libs.notIncludes 												// ... КРОМЕ файлов, начинающихся с нижнего подчёркивания
-		])
-    .pipe(sass()) 														// Преобразуем Sass в CSS посредством gulp-sass
-    .pipe(autoprefixer([
-			'last 15 versions', 
-			'> 1%', 
-			'ie 8', 
-			'ie 7'
-		], 
-		{ cascade: true }))												// Создаем префиксы
-    .pipe(gulp.dest('sources/css')) 					// Выгружаем результата в папку sources/css
-    .pipe(browserSync.reload({stream: true})) // Обновляем CSS на странице при изменении
-});
+function styles() {
+    return src([
+        'src/scss/*.scss',
+        '!src/scss/_*.scss'
+    ])
+    .pipe(scss())
+    .pipe(vendorize({ 
+        overrideBrowserslist: ['last 10 versions'], 
+        grid: true
+    })) // adding autoprefixes for old browsers
+    .pipe(cleancss( ( { level: { 1: { specialComments: 0} }, format: 'beautify' } ) ) )
+    //.pipe(concat('styles.css'))
+    .pipe(dest('preprod/css/')) // outputting to preprod
+    .pipe(browserSync.stream()) // adding watching w/o hard reload of page
+}
 
+function minifyImg() {
+    return src('src/img/**/*')
+    .pipe(newer('preprod/img/'))
+    .pipe(imagemin())
+    .pipe(dest('preprod/img/'))
+}
 
+function cleanImg() {
+    return del('preprod/img/**/*', {force: true})
+}
 
-// СЖАТИЕ CSS БИБЛИОТЕК
-gulp.task('css-libs', ['styles'], function() {
-    return gulp.src([
-			libs.libraries + 'normalize.css/normalize.css',
-			libs.modules + '**/*.css'
-		])
-		.pipe(concat('libs.min.css')) 														// конкатенируем всю эту радость в файл libs.min.css
-		.pipe(cssnano()) 																					// Сжимаем его
-		.pipe(gulp.dest('sources/css')); 													// и выгружаем в папку sources/css
-});
+function scripts() {
+    return src([
+        'src/js/*.js'
+    ])
+    //.pipe(concat('scripts.js'))
+    .pipe(dest('preprod/js/')) // outputting to preprod
+    .pipe(browserSync.stream()) // adding watching w/o hard reload of page
+}
 
-// КОМПИЛЯЦИЯ PUG
-gulp.task('pages', function() {
-		return gulp.src([
-			'sources/pages/*.pug',				// берём в папке с сырцами все pug, НО ...
-			libs.notIncludes							// ... исключаем из них все, начинающиеся на андерскор
-		])
-		.pipe(pug())										// компилируем их
-		.pipe(gulp.dest('sources'))			// и выгружаем каждый в отдельности в корень папки с сырцами
-});
+function cleanprod() {
+    return del( 'public/**/*', {forced: true} )
+}
 
+function buildjs() {
+    return src('preprod/js/*.js')
+    .pipe(uglify())
+    .pipe(dest('public/js/'));
+}
 
+function buildhtml() {
+    return src('preprod/*.html')
+    .pipe(htmlmin({ collapseWhitespace: true }))
+    .pipe(dest('public/'));
+}
 
-// ПЕРЕЖАТИЕ БИБЛИОТЕК JS
-gulp.task('scripts', function() {
-    return gulp.src([																				// декларируем новый таск,
-			libs.libraries + 'jquery/jquery.min.js',							// в котором сорсы будут браться из переменных в подключаемом файле libs.js
-			libs.libraries + 'jquery-ui/jquery-ui.min.js'					// и конкатенироваться с названием конкретных библиотек
-		])
-		.pipe(concat('libs.min.js')) 														// Собираем их в кучу в новом файле libs.min.js
-		.pipe(uglify())																					// Сжимаем этот файл
-		.pipe(gulp.dest('sources/js'));													// Выгружаем его в папку sources/js
-});
+function buildcss() {
+    return src('preprod/css/*.css')
+    .pipe(uglifycss({ 
+        "maxLineLen": 80,
+        "uglyComments": true 
+    }))
+    .pipe(dest('public/css/'));
+}
 
+function buildimg() {
+    return src('preprod/img/**/*')
+    .pipe(dest('public/img/'))
+}
 
+function startwatch () {
+    watch( 'src/scss/*.scss', styles );
+    watch( 'src/pug/*.pug', compilePug );
+    watch( 'src/js/*.js', scripts );
+    watch( 'src/img/**/*', minifyImg );
+}
 
-// СИНХРОНИЗАЦИЯ БРАУЗЕРА
-gulp.task('browser-sync', function() {
-    browserSync({
-        server: {
-            baseDir: 'sources'	// исходная папка, откуда "слушаются" файлики
-        },
-        notify: false
-    });
-});
+exports.browsersync = browsersync;
+exports.scripts     = scripts;
+exports.styles      = styles;
+exports.compilePug  = compilePug;
+exports.minifyImg   = minifyImg;
+exports.cleanImg    = cleanImg;
+exports.build       = series(cleanprod, buildjs, buildhtml, buildcss, buildimg);
 
-
-// ШПИЁН
-gulp.task('watch', ['browser-sync', 'css-libs', 'pages', 'scripts'], function() {	// Перед запуском Вотча запустить сервер окна браузера, скомпайлить цсс с пагом, пережать библиотеки
-	gulp.watch('sources/styles/*.+(sass|scss)', ['styles']); 												// watch sass/scss files
-	gulp.watch('sources/pages/*.pug', ['pages']);																		// watch pug files
-	gulp.watch('sources/*.html', browserSync.reload);																// watch HTML files
-	gulp.watch('sources/js/**/*.js', browserSync.reload);														// watch JS files
-});
-
-// ПРОДАКШН:
-// clear
-gulp.task('clean', function() {
-	return del.sync('public');					// Удаляем папку public перед сборкой
-});
-// imgs
-gulp.task('img', function() {
-	return gulp.src('sources/img/**/*') // Берем все изображения из sources
-		.pipe(cache(imagemin({  					// Сжимаем их с наилучшими настройками с учетом кеширования
-			interlaced: true,
-			progressive: true,
-			svgoPlugins: [{removeViewBox: false}],
-			use: [pngquant()]
-		})))
-		.pipe(gulp.dest('public/img')); 	// Выгружаем на продакшен
-});
-	
-// build
-gulp.task('build', ['clean', 'img', 'css-libs', 'pages', 'scripts'], function() {
- 
-    var buildCss = gulp.src([ 									// Переносим библиотеки в продакшн
-			'sources/css/libs.min.css',
-			'sources/css/styles.css'
-		])
-		.pipe(concat('styles.css'))
-    .pipe(gulp.dest('public/css'));
- 
-    var buildJs = gulp.src([ 
-			'sources/js/libs.min.js', 								// берём минимизированные библиотеки,
-			'sources/js/styles.js' 										// и наш несжатый скрипт для сайта
-		])
-		.pipe(concat('styles.js')) 									// сливаем их в один файл
-    .pipe(gulp.dest('public/js')); 							// и выгружаем в продакшн
- 
-    var buildHtml = gulp.src('sources/*.html')	// Переносим HTML в продакшн
-    .pipe(gulp.dest('public'));
- 
-});
-	
-// очистка кэша
-gulp.task('clear', function () {
-    return cache.clearAll();
-});
-	
-// задаём для gulp таск по-умолчанию
-gulp.task('default', ['watch']);
+exports.default     = parallel(styles, minifyImg, compilePug, scripts, browsersync, startwatch);
